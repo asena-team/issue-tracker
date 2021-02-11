@@ -1,52 +1,95 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"encoding/json"
+	"log"
+	"net/http"
 	"os"
+	"os/signal"
+	"time"
 
 	"github.com/andygrunwald/go-jira"
+	"github.com/gorilla/mux"
 )
 
+var jiraClient *jira.Client
+
 func main() {
-	jiraClient := newJiraClient()
+	jiraClient = JiraClient()
 
-	i := jira.Issue{
-		Fields: &jira.IssueFields{
-			Description: "Test Issue",
-			Type: jira.IssueType{
-				Name: "Bug",
-			},
-			Project: jira.Project{
-				Key: Project,
-			},
-			Summary: "Just a demo issue",
-		},
+	r := mux.NewRouter()
+
+	fs := http.FileServer(http.Dir("./static/"))
+	r.Handle("/", &Server{r}).Handler(fs)
+	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	})
+
+	r.HandleFunc("/issue", IssueHandler).Methods("POST")
+
+	srv := &http.Server{
+		Addr:         "0.0.0.0:" + Port(),
+		Handler:      r,
+		ReadTimeout:  time.Second * 15,
+		WriteTimeout: time.Second * 15,
+		IdleTimeout:  time.Second * 30,
 	}
-	issue, _, err := jiraClient.Issue.Create(&i)
-	if err != nil {
-		panic(err)
-	}
 
-	fmt.Printf("%s: %+v\n", issue.Key, i.Fields.Summary)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			panic(err)
+		}
+	}()
 
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	defer cancel()
+
+	_ = srv.Shutdown(ctx)
+
+	log.Println("Server shut down.")
+	os.Exit(0)
 }
 
-func newJiraClient() *jira.Client {
-	username := os.Getenv("JIRA_USERNAME")
-	token := os.Getenv("JIRA_TOKEN")
-	if username == "" || token == "" {
-		panic("Please put JIRA_USERNAME and JIRA_TOKEN env vars.")
+type Server struct {
+	r *mux.Router
+}
+
+type Issue struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Type        string `json:"type"`
+	Priority    string `json:"priority"`
+	Reporter    string `json:"reporter"`
+}
+
+func Port() string {
+	port := os.Getenv("PORT")
+	if port == "" {
+		return "80"
 	}
 
-	tp := jira.BasicAuthTransport{
-		Username: username,
-		Password: token,
+	return port
+}
+
+func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if origin := r.Header.Get("origin"); origin != "" {
+		r.Header.Set("Access-Control-Allow-Origin", origin)
+		r.Header.Set("Access-Control-Allow-Methods", "GET, POST")
 	}
 
-	jiraClient, err := jira.NewClient(tp.Client(), BaseUrl)
-	if jiraClient == nil {
-		panic(err)
-	}
+	s.r.ServeHTTP(w, r)
+}
 
-	return jiraClient
+func IssueHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application-json")
+	var issue Issue
+	_ = json.NewDecoder(r.Body).Decode(&issue)
+
+	i := NewIssue(issue)
+	_, _, _ = jiraClient.Issue.Create(&i) // TODO::Handle Errors
 }
