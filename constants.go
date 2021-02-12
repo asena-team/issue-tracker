@@ -1,6 +1,9 @@
 package main
 
-// Atlassian Definations
+// Current API Version
+const APIVersion = 1
+
+// Atlassian Definitions
 const (
 	BaseUrl = "https://asena-team.atlassian.net"
 	Project = "AS"
@@ -17,7 +20,7 @@ var IssueTypes = []string{
 }
 
 // Issue Priorities
-var Priority = []string{
+var Priorities = []string{
 	"Highest",
 	"High",
 	"Medium",
