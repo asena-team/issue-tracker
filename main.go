@@ -82,6 +82,7 @@ type Issue struct {
 	Type        string `json:"type"`
 	Priority    string `json:"priority"`
 	Reporter    string `json:"reporter"`
+	EMail       string `json:"email"`
 }
 
 func Port() string {
@@ -138,7 +139,11 @@ func IssueHandler(w http.ResponseWriter, r *http.Request) {
 		// TODO::Handle Error
 	}
 
-	if issue.Reporter == "" || !Compare(len(issue.Reporter), 50, 1) {
+	if issue.Reporter == "" || !Compare(len(issue.Reporter), 50, 1) || !Match(ReporterRegEx, issue.Reporter) {
+		// TODO::Handle Error
+	}
+
+	if issue.EMail == "" || Match(EMailRegEx, issue.EMail) {
 		// TODO::Handle Error
 	}
 
