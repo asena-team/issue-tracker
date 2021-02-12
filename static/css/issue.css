@@ -5,6 +5,10 @@ body {
     padding: 0;
 }
 
+.header {
+    margin-top: 75px;
+}
+
 .asena-link {
     font-size: 50px;
     font-family: "Poppins", sans-serif;
@@ -12,11 +16,6 @@ body {
 
 .header-text {
     font-size: 34px;
-    font-family: "Poppins", sans-serif;
-}
-
-.header-desc {
-    font-size: 20px;
     font-family: "Poppins", sans-serif;
 }
 

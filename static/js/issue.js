@@ -1,25 +1,55 @@
+const formSubmitEvent = (e) => {
+  const isNameBlank = document.getElementById("name").value === "";
+  const isEmailBlank = document.getElementById("email").value === "";
+  const isTitleBlank = document.getElementById("title").value === "";
+  const isDescBlank = document.getElementById("desc").value === "";
+
+  const inputInfo = [
+    {
+      name: "name",
+      blank: isNameBlank
+    }, {
+      name: "mail",
+      blank: isEmailBlank,
+    }, {
+      name: "title",
+      blank: isTitleBlank
+    }, {
+      name: "desc",
+      blank: isDescBlank
+    },
+  ];
+
+  for (let i = 0; i < inputInfo.length; i++) {
+    if (inputInfo[i].blank === true) {
+      const info = inputInfo[i].name;
+      infoMessages(info)
+    }
+  }
+
+  var typeDefaultOption = document.getElementById("type").options[0].value;
+  var priotiryDefaultOption = document.getElementById("priority").options[0]
+    .value;
+
+  $("#name").val("");
+  $("#email").val("");
+  $("#title").val("");
+  $("#type").val(typeDefaultOption);
+  $("#priority").val(priotiryDefaultOption);
+  $("#desc").val("");
+
+  infoMessages("success")
+
+  e.preventDefault();
+}
+
 const infoMessages = (inputName) => {
-  if (inputName == "all") {
-    $(".name-info-message").show();
-    $(".mail-info-message").show();
-    $(".title-info-message").show();
-    $(".desc-info-message").show();
-  } else if (inputName == "name") {
-    $(".name-info-message").show();
-  } else if (inputName == "email") {
-    $(".mail-info-message").show();
-  } else if (inputName == "title") {
-    $(".title-info-message").show();
-  } else if (inputName == "desc") {
-    $(".desc-info-message").show();
-  } else if (inputName == "success") {
-    $(".name-info-message").hide();
-    $(".mail-info-message").hide();
-    $(".title-info-message").hide();
-    $(".desc-info-message").hide();
-
+  if (inputName === "success") {
     $("#success-modal").show();
-
+    $(".name-info-message").hide()
+    $(".mail-info-message").hide()
+    $(".title-info-message").hide()
+    $(".desc-info-message").hide()
     setTimeout(() => {
       $("#check").attr("checked", true);
     }, 1500);
@@ -28,50 +58,9 @@ const infoMessages = (inputName) => {
       $("#check").attr("checked", false);
       $("#success-modal").hide();
     }, 2200);
-  }
-};
-
-const formSubmitEvent = (e) => {
-  const nameControl =
-    document.getElementById("name").value == "" ? true : false;
-  const emailControl =
-    document.getElementById("email").value == "" ? true : false;
-  const titleControl =
-    document.getElementById("title").value == "" ? true : false;
-  const descControl =
-    document.getElementById("desc").value == "" ? true : false;
-
-  if (
-    nameControl == true &&
-    emailControl == true &&
-    titleControl == true &&
-    descControl == true
-  ) {
-    infoMessages("all");
-  } else if (nameControl == true) {
-    infoMessages("name");
-  } else if (emailControl == true) {
-    infoMessages("email");
-  } else if (titleControl == true) {
-    infoMessages("title");
-  } else if (descControl == true) {
-    infoMessages("desc");
   } else {
-    var typeDefaultOption = document.getElementById("type").options[0].value;
-    var priotiryDefaultOption = document.getElementById("priority").options[0]
-      .value;
-
-    $("#name").val("");
-    $("#email").val("");
-    $("#title").val("");
-    $("#type").val(typeDefaultOption);
-    $("#priority").val(priotiryDefaultOption);
-    $("#desc").val("");
-
-    infoMessages("success");
+    $(`.${inputName}-info-message`).show()
   }
-
-  e.preventDefault();
 };
 
 const form = document.getElementById("issue-form");
