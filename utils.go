@@ -7,8 +7,8 @@ const (
 	ReporterRegEx = "^((.+?)#\\d{4})$"
 )
 
-func Compare(n, max, min int) bool {
-	return n <= max && n >= min
+func Compare(n, min, max int) bool {
+	return n >= min && n <= max
 }
 
 func Contains(i string, a []string) bool {

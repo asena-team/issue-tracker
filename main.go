@@ -131,15 +131,15 @@ func IssueHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Duplicated shit codes
-	if issue.Title == "" || !Compare(len(issue.Title), 150, 1) {
+	if issue.Title == "" || !Compare(len(issue.Title), 1, 150) {
 		// TODO::Handle Error
 	}
 
-	if issue.Description == "" || !Compare(len(issue.Description), 2000, 30) {
+	if issue.Description == "" || !Compare(len(issue.Description), 30, 2000) {
 		// TODO::Handle Error
 	}
 
-	if issue.Reporter == "" || !Compare(len(issue.Reporter), 50, 1) || !Match(ReporterRegEx, issue.Reporter) {
+	if issue.Reporter == "" || !Compare(len(issue.Reporter), 1, 50) || !Match(ReporterRegEx, issue.Reporter) {
 		// TODO::Handle Error
 	}
 
