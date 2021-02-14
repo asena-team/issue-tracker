@@ -1,0 +1,112 @@
+{{define "index"}}
+<!DOCTYPE html>
+<!--suppress ALL -->
+<html lang="tr">
+<head>
+    <title>Asena | Issues</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Asena | Tamamen Türkçe, stabil, hızlı, kolay Discord botu!">
+
+    <meta property="og:title" content="Asena | Issue Tracker"/>
+    <meta property="og:url" content="https://asena.xyz"/>
+    <meta property="og:description" content="Asena issue tracker">
+    <meta property="og:image" content="https://asena.xyz/images/icon.png">
+
+    <link rel="icon" href="https://asena.xyz/images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://asena.xyz/css/animate.css">
+    <link rel="stylesheet" href="https://asena.xyz/css/style.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+
+<body>
+<div id="success-modal" class="modal">
+    <div class="modal-content">
+        <input type="checkbox" id="check">
+        <label for="check">
+            <div class="check-icon"></div>
+        </label>
+    </div>
+</div>
+<section class="contact-section ftco-no-pb mt-4">
+    <div class="container">
+        <div class="header row justify-content-center mb-5 pb-3">
+            <div class="col-md-7 heading-section text-center ftco-animate fadeInUp ftco-animated">
+                <h2><a class="asena-link" href="https://www.asena.xyz">Asena</a></h2>
+                <h2 class="header-text mb-3">Hata Raporlama Sistemi</h2>
+            </div>
+        </div>
+        <div class="row no-gutters block-9">
+            <div class="col-md-12 order-md-last mb-5 d-flex justify-content-center">
+                <form action="/" method="post" id="issue-form" class="col-md-9 p-4 p-md-5 contact-form">
+                    <div class="d-md-flex">
+                        <div class="form-group col-md-6">
+                            <input
+                                    pattern="((.+?)#\d{4})"
+                                    name="reporter"
+                                    type="text"
+                                    minlength="6"
+                                    maxlength="50"
+                                    class="form-control"
+                                    placeholder="Discord Adınız, Örn: Asena#2614"
+                                    required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <input
+                                    pattern="(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|&quot(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*&quot)@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])"
+                                    name="mail"
+                                    type="email"
+                                    minlength="0"
+                                    maxlength="150"
+                                    class="form-control"
+                                    placeholder="E-Mail Adresiniz"
+                                    required>
+                        </div>
+                    </div>
+                    <div class="d-md-flex">
+                        <div class="form-group col-md-6">
+                            <select name="type" class="form-control" required>
+                                <option value="" disabled selected>Bir Konu Başlığı Seçin</option>
+                                <option value="Bug">Bug</option>
+                                <option value="Security">Güvenlik Açığı</option>
+                                <option value="Improvement">İyileştirme</option>
+                                <option value="New Feature">Yeni Özellik İsteği</option>
+                                <option value="Proposal">Öneri</option>
+                                <option value="Other">Diğer</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <select name="priority" class="form-control" required>
+                                <option value="" disabled selected>Bir Önem Düzeyi Seçin</option>
+                                <option value="Lowest">Çok Düşük</option>
+                                <option value="Low">Düşük</option>
+                                <option value="Medium">Orta</option>
+                                <option value="High">Yüksek</option>
+                                <option value="Highest">Kritik</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <input name="title" type="text" minlength="1" maxlength="150" class="form-control" placeholder="Başlık" required>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <textarea name="description" minlength="30" maxlength="3000" class="form-control" placeholder="Açıklama (Max 3000 karakter)" rows="5" required></textarea>
+                    </div>
+                    <div class="form-group col-md-12 d-flex">
+                        <button type="submit" class="submit-btn btn btn-success btn-block">Gönder</button>
+                    </div>
+                    <small class="col-sm-12 form-text text-muted">* Tüm alanların doldurulması zorunludur.</small>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+</body>
+
+</html>
+
+{{end}}

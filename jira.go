@@ -1,13 +1,13 @@
 package main
 
 import (
-	"os"
-
+	"fmt"
 	"github.com/andygrunwald/go-jira"
+	"os"
 )
 
-func NewIssue(issue Issue) jira.Issue {
-	return jira.Issue{
+func NewIssue(issue *Issue) *jira.Issue {
+	return &jira.Issue{
 		Fields: &jira.IssueFields{
 			Project: jira.Project{
 				Key: Project,
@@ -18,10 +18,15 @@ func NewIssue(issue Issue) jira.Issue {
 			Priority: &jira.Priority{
 				Name: issue.Priority,
 			},
+			Labels:      []string{"automation"},
 			Summary:     issue.Title,
-			Description: issue.Description,
+			Description: buildDescription(issue),
 		},
 	}
+}
+
+func buildDescription(issue *Issue) string {
+	return fmt.Sprintf("Reporter: %s <%s>\n\n%s", issue.Reporter, issue.Mail, issue.Description)
 }
 
 func JiraClient() *jira.Client {

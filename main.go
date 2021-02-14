@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"html/template"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -15,36 +16,42 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var jiraClient *jira.Client
+var (
+	jiraClient *jira.Client
+	views      *template.Template
+)
 
 var FileServerPaths = []string{"css", "js", "images"}
 
 func main() {
 	jiraClient = JiraClient()
 
+	var err error
+	views, err = template.ParseGlob(filepath.Join("views", "*.html"))
+	if err != nil {
+		panic(err)
+	}
+
 	r := mux.NewRouter()
 
-	fs := http.FileServer(http.Dir("./static/"))
-	r.Handle("/", fs)
+	fs := http.StripPrefix("/static/", http.FileServer(http.Dir("static")))
 	for _, path := range FileServerPaths {
-		r.PathPrefix("/" + path).Handler(fs)
+		r.PathPrefix("/static/" + path).Handler(fs)
 	}
+
+	r.HandleFunc("/", Handler).Methods("POST", "GET")
 
 	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 	})
 
+	// TODO(anilmisirliog) Delete API endpoint, implement Rate Limiter of "/" endpoint
 	api := r.PathPrefix("/api/v" + strconv.Itoa(APIVersion)).Subrouter()
 	api.Use(APIRateLimiter)
-	api.HandleFunc("/issue", IssueHandler).Methods("POST")
-	i := 0
-	api.HandleFunc("/get", func(writer http.ResponseWriter, request *http.Request) {
-		i++
-		_, _ = writer.Write([]byte(strconv.Itoa(i)))
-	}).Methods("GET")
+	api.HandleFunc("/issue", Handler).Methods("POST")
 
 	srv := &http.Server{
-		Addr:         "0.0.0.0:" + Port(),
+		Addr:         net.JoinHostPort("", Port()),
 		Handler:      &Server{r},
 		ReadTimeout:  time.Second * 15,
 		WriteTimeout: time.Second * 15,
@@ -82,7 +89,7 @@ type Issue struct {
 	Type        string `json:"type"`
 	Priority    string `json:"priority"`
 	Reporter    string `json:"reporter"`
-	EMail       string `json:"email"`
+	Mail        string `json:"mail"`
 }
 
 func Port() string {
@@ -122,42 +129,45 @@ func APIRateLimiter(h http.Handler) http.Handler {
 	})
 }
 
-func IssueHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application-json")
-	var issue Issue
-	err := json.NewDecoder(r.Body).Decode(&issue)
-	if err != nil {
-		// TODO::Handle Error
+func Handler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		if err := views.ExecuteTemplate(w, "index", map[string]interface{}{}); err != nil {
+			log.Printf("failed to render template: %v", err)
+		}
+
+		return
 	}
 
-	// Duplicated shit codes
-	if issue.Title == "" || !Compare(len(issue.Title), 1, 150) {
-		// TODO::Handle Error
+	if err := r.ParseForm(); err != nil {
+		if err := views.ExecuteTemplate(w, "index", map[string]interface{}{}); err != nil {
+			log.Printf("failed to render template: %v", err)
+		}
+
+		return
 	}
 
-	if issue.Description == "" || !Compare(len(issue.Description), 30, 2000) {
-		// TODO::Handle Error
-	}
+	issue, ok := ValidateForm(&r.Form)
+	if !ok {
+		if err := views.ExecuteTemplate(w, "index", map[string]interface{}{}); err != nil {
+			log.Fatalf("failed to render template: %v", err)
+		}
 
-	if issue.Reporter == "" || !Compare(len(issue.Reporter), 1, 50) || !Match(ReporterRegEx, issue.Reporter) {
-		// TODO::Handle Error
-	}
-
-	if issue.EMail == "" || Match(EMailRegEx, issue.EMail) {
-		// TODO::Handle Error
-	}
-
-	if !Contains(issue.Type, IssueTypes) {
-		// TODO::Handle Error
-	}
-
-	if !Contains(issue.Priority, Priorities) {
-		// TODO::Handle Error
+		return
 	}
 
 	i := NewIssue(issue)
-	_, _, err = jiraClient.Issue.Create(&i)
+	_, _, err := jiraClient.Issue.Create(i)
 	if err != nil {
-		// TODO::Handle Error
+		log.Printf("err: %s", err)
+		if err := views.ExecuteTemplate(w, "index", map[string]interface{}{}); err != nil {
+			log.Fatalf("failed to render template: %v", err)
+		}
+
+		return
+	}
+
+	// TODO(anilmisirlioglu) UI Error Handling
+	if err := views.ExecuteTemplate(w, "index", map[string]interface{}{}); err != nil {
+		log.Fatalf("failed to render template: %v", err)
 	}
 }

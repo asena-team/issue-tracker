@@ -38,38 +38,12 @@ body {
 }
 
 .submit-btn {
-    width: 400px;
     height: 45px;
     border-radius: 5px;
     font-family: "Poppins", sans-serif;
 }
 
-.name-info-message {
-    font-family: "Poppins", sans-serif;
-    margin-left: 10px;
-    font-size: 11pt;
-    color: red;
-    display: none;
-}
-
-.mail-info-message {
-    font-family: "Poppins", sans-serif;
-    margin-left: 10px;
-    font-size: 11pt;
-    color: red;
-    display: none;
-}
-
-.title-info-message {
-    font-family: "Poppins", sans-serif;
-    margin-left: 10px;
-    font-size: 11pt;
-    color: red;
-    display: none;
-}
-
-
-.desc-info-message {
+.error-message {
     font-family: "Poppins", sans-serif;
     margin-left: 10px;
     font-size: 11pt;
