@@ -1,0 +1,15 @@
+{{define "result"}}
+<div class="center">
+    <div class="container-fluid px-5 text-center ftco-animate fadeInUp ftco-animated">
+        <div class="heading-section mt-5">
+            <h2 class="mb-3">{{if .result}} Başarılı {{else}} Hata {{end}}</h2>
+            {{range .messages}}
+                <span class="subheading">{{.}}</span>
+            {{end}}
+        </div>
+        <img class="img-fluid"
+             src="/static/images/result.png"
+             alt="image">
+    </div>
+</div>
+{{end}}

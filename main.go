@@ -9,7 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strconv"
+	"strings"
 	"time"
 
 	"github.com/andygrunwald/go-jira"
@@ -40,15 +40,11 @@ func main() {
 	}
 
 	r.HandleFunc("/", Handler).Methods("POST", "GET")
+	r.Use(APIRateLimiter)
 
 	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 	})
-
-	// TODO(anilmisirliog) Delete API endpoint, implement Rate Limiter of "/" endpoint
-	api := r.PathPrefix("/api/v" + strconv.Itoa(APIVersion)).Subrouter()
-	api.Use(APIRateLimiter)
-	api.HandleFunc("/issue", Handler).Methods("POST")
 
 	srv := &http.Server{
 		Addr:         net.JoinHostPort("", Port()),
@@ -112,17 +108,21 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func APIRateLimiter(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			log.Println(err.Error())
-			http.Error(w, "Internal APIServer Error", http.StatusInternalServerError)
-			return
-		}
+		if r.Method != "GET" {
+			ip, _, err := net.SplitHostPort(r.RemoteAddr)
+			if err != nil {
+				log.Println(err)
+				executeResult(&w, false, "IP adresiniz işlenemdi. Lütfen daha sonra tekrar deneyin.")
 
-		limiter := GetVisitor(ip)
-		if !limiter.Allow() {
-			http.Error(w, http.StatusText(429), http.StatusTooManyRequests)
-			return
+				return
+			}
+
+			limiter := GetVisitor(ip)
+			if !limiter.Allow() {
+				executeResult(&w, false, "Hey! Lütfen biraz yavaşla.\nBu kadar kısa sürede, bu kadar fazla istek gönderemezsin.\nEğer bunun bir hata olduğunu düşünüyorsan lütfen bizimle iletişime geç.")
+
+				return
+			}
 		}
 
 		h.ServeHTTP(w, r)
@@ -139,35 +139,37 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		if err := views.ExecuteTemplate(w, "index", map[string]interface{}{}); err != nil {
-			log.Printf("failed to render template: %v", err)
-		}
+		executeResult(&w, false, "Bilinmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin.")
 
 		return
 	}
 
 	issue, ok := ValidateForm(&r.Form)
 	if !ok {
-		if err := views.ExecuteTemplate(w, "index", map[string]interface{}{}); err != nil {
-			log.Fatalf("failed to render template: %v", err)
-		}
+		executeResult(&w, false, "Göndermeye çalıştığınız bilgiler istenen şartlara uymuyor.")
 
 		return
 	}
 
 	i := NewIssue(issue)
-	_, _, err := jiraClient.Issue.Create(i)
+	res, _, err := jiraClient.Issue.Create(i)
 	if err != nil {
-		log.Printf("err: %s", err)
-		if err := views.ExecuteTemplate(w, "index", map[string]interface{}{}); err != nil {
-			log.Fatalf("failed to render template: %v", err)
-		}
+		log.Printf("issue creation error: %s", err)
+		executeResult(&w, false, "Bilinmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin.")
 
 		return
 	}
 
-	// TODO(anilmisirlioglu) UI Error Handling
-	if err := views.ExecuteTemplate(w, "index", map[string]interface{}{}); err != nil {
-		log.Fatalf("failed to render template: %v", err)
+	executeResult(&w, true, "Gönderiniz tarafımıza başarıyla ulaştı.\nGeri bildiriminiz için teşekkür ederiz.\nIssue Key: "+res.Key)
+}
+
+func executeResult(w *http.ResponseWriter, result bool, message string) {
+	arr := map[string]interface{}{
+		"result":   result,
+		"messages": strings.Split(message, "\n"),
+	}
+
+	if err := views.ExecuteTemplate(*w, "index", arr); err != nil {
+		log.Printf("failed to render template: %v", err)
 	}
 }

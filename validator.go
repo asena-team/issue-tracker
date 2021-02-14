@@ -19,7 +19,7 @@ type SelectorValue struct {
 
 var values = []interface{}{
 	InputValue{"title", "", 1, 150},
-	InputValue{"description", "", 30, 2000},
+	InputValue{"description", "", 30, 3000},
 	InputValue{"reporter", ReporterRegEx, 1, 50},
 	InputValue{"mail", EMailRegEx, 0, 150},
 	SelectorValue{"type", IssueTypes},

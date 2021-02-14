@@ -20,7 +20,7 @@ func GetVisitor(ip string) *rate.Limiter {
 
 	v, exists := visitors[ip]
 	if !exists {
-		r := rate.Every(time.Minute * 1)
+		r := rate.Every(time.Minute * 30)
 		limiter := rate.NewLimiter(r, 2)
 		visitors[ip] = &Visitor{
 			limiter,
@@ -40,7 +40,7 @@ func CleanupVisitors() {
 
 		mutex.Lock()
 		for ip, v := range visitors {
-			if time.Since(v.LastSeen) > 1*time.Minute {
+			if time.Since(v.LastSeen) > 30*time.Minute {
 				delete(visitors, ip)
 			}
 		}
