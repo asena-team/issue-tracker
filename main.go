@@ -39,7 +39,8 @@ func main() {
 		r.PathPrefix("/static/" + path).Handler(fs)
 	}
 
-	r.HandleFunc("/", Handler).Methods("POST", "GET")
+	r.HandleFunc("/", ServePage).Methods("GET")
+	r.HandleFunc("/result", ResultHandler).Methods("GET", "POST")
 	r.Use(APIRateLimiter)
 
 	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -129,11 +130,17 @@ func APIRateLimiter(h http.Handler) http.Handler {
 	})
 }
 
-func Handler(w http.ResponseWriter, r *http.Request) {
+func ServePage(w http.ResponseWriter, _ *http.Request) {
+	if err := views.ExecuteTemplate(w, "index", map[string]interface{}{}); err != nil {
+		log.Printf("failed to render template: %v", err)
+	}
+
+	return
+}
+
+func ResultHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		if err := views.ExecuteTemplate(w, "index", map[string]interface{}{}); err != nil {
-			log.Printf("failed to render template: %v", err)
-		}
+		http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 
 		return
 	}
