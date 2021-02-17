@@ -1,3 +1,3 @@
-# Asena - [Issue Tracker](https://issue.asena.xyz)
+# Asena - [Issue Tracker](https://issue.asena.xyz) [![Made With Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg?color=007EC6)](http://golang.org) [![Build Status](https://github.com/asena-team/issue-tracker/workflows/Go%20CI/badge.svg)](https://github.com/asena-team/issue-tracker) [![Go Report Card](https://goreportcard.com/badge/github.com/asena-team/issue-tracker)](https://goreportcard.com/report/github.com/asena-team/issue-tracker)
 
 Asena issue tracker, written in Go and powered by JIRA.
